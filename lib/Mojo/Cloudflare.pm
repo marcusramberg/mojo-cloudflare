@@ -17,7 +17,7 @@ L<Mojo::Cloudflare> is an async client for the L<CloudFlare API|http://www.cloud
   use Mojo::Cloudflare;
   my $cf = Mojo::Cloudflare->new(
              email => 'sample@example.com',
-             token => '8afbe6dea02407989af4dd4c97bb6e25',
+             key => '8afbe6dea02407989af4dd4c97bb6e25',
              zone => 'example.com',
            );
 
@@ -26,6 +26,10 @@ L<Mojo::Cloudflare> is an async client for the L<CloudFlare API|http://www.cloud
     
     $cf->edit_record({
       id => $record->{rec_id},
+      type => 'CNAME',
+      name => 'home',
+      content => 'example.com',
+      ttl => 1,
       service_mode => 0,
     });
   }
@@ -52,10 +56,10 @@ L<https://www.cloudflare.com/api_json.html>.
 
 The e-mail address associated with the API key.
 
-=head2 token
+=head2 key
 
-  $str = $self->token;
-  $self = $self->token($str);
+  $str = $self->key;
+  $self = $self->key($str);
 
 This is the API key made available on your Account page.
 
@@ -64,13 +68,13 @@ This is the API key made available on your Account page.
   $str = $self->zone;
   $self = $self->zone($str);
 
-The zone to modify.
+The zone (domain) to act on.
 
 =cut
 
 has api_url => 'https://www.cloudflare.com/api_json.html';
 has email => '';
-has token => '';
+has key => '';
 has zone => '';
 has _ua => sub { Mojo::UserAgent->new };
 
@@ -327,7 +331,7 @@ sub _post {
 
   $data->{a} or die "Internal error: Unknown action";
   $data->{email} ||= $self->email;
-  $data->{tkn} ||= $self->token;
+  $data->{tkn} ||= $self->key;
   $data->{z} = $self->zone if $data->{a} =~ /^rec/;
 
   unless($cb) {

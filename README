@@ -12,7 +12,7 @@ SYNOPSIS
       use Mojo::Cloudflare;
       my $cf = Mojo::Cloudflare->new(
                  email => 'sample@example.com',
-                 token => '8afbe6dea02407989af4dd4c97bb6e25',
+                 key => '8afbe6dea02407989af4dd4c97bb6e25',
                  zone => 'example.com',
                );
 
@@ -21,6 +21,10 @@ SYNOPSIS
     
         $cf->edit_record({
           id => $record->{rec_id},
+          type => 'CNAME',
+          name => 'home',
+          content => 'example.com',
+          ttl => 1,
           service_mode => 0,
         });
       }
@@ -36,9 +40,9 @@ ATTRIBUTES
 
     The e-mail address associated with the API key.
 
-  token
-      $str = $self->token;
-      $self = $self->token($str);
+  key
+      $str = $self->key;
+      $self = $self->key($str);
 
     This is the API key made available on your Account page.
 

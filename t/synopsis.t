@@ -21,7 +21,7 @@ my($json, $req, $t);
 {
   my $cf = Mojo::Cloudflare->new(
              email => 'sample@example.com',
-             token => '8afbe6dea02407989af4dd4c97bb6e25',
+             key => '8afbe6dea02407989af4dd4c97bb6e25',
              zone => 'example.com',
              api_url => '/api',
              _ua => $t->ua,

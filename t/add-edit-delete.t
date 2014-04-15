@@ -5,7 +5,7 @@ use Mojo::Cloudflare;
 plan skip_all => 'TEST_ONLINE="zone|email|key" Need to be set' unless $ENV{TEST_ONLINE};
 
 my @args = split '\|', $ENV{TEST_ONLINE};
-my $t = Mojo::Cloudflare->new(zone => $args[0], email => $args[1], token => $args[2]);
+my $t = Mojo::Cloudflare->new(zone => $args[0], email => $args[1], key => $args[2]);
 my $id = $ENV{TEST_ID};
 my $json;
 
