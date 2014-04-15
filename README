@@ -50,7 +50,7 @@ ATTRIBUTES
       $str = $self->zone;
       $self = $self->zone($str);
 
-    The zone to modify.
+    The zone (domain) to act on.
 
 METHODS
   add_record

@@ -1,4 +1,8 @@
 Revision history for Mojo-Cloudflare
 
-0.01
+0.01     Tue Apr 15 11:19:41 2014
        * Started project
+       * Add add_record()
+       * Add delete_record()
+       * Add edit_record()
+       * Add records()
