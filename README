@@ -2,7 +2,7 @@ NAME
     Mojo::Cloudflare - Talk with the cloudflare API using Mojo::UserAgent
 
 VERSION
-    0.01
+    0.02
 
 DESCRIPTION
     Mojo::Cloudflare is an async client for the CloudFlare API

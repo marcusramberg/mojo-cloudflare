@@ -6,7 +6,7 @@ Mojo::Cloudflare - Talk with the cloudflare API using Mojo::UserAgent
 
 =head1 VERSION
 
-0.01
+0.02
 
 =head1 DESCRIPTION
 
@@ -40,7 +40,7 @@ use Mojo::Base -base;
 use Mojo::JSON::Pointer;
 use Mojo::UserAgent;
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 =head1 ATTRIBUTES
 
