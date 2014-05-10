@@ -10,7 +10,8 @@ Mojo::Cloudflare - Talk with the Cloudflare API using Mojo::UserAgent
 
 =head1 DESCRIPTION
 
-L<Mojo::Cloudflare> is an async client for the L<CloudFlare API|http://www.cloudflare.com/docs/client-api.html>.
+L<Mojo::Cloudflare> is an (async) client for the
+L<CloudFlare API|http://www.cloudflare.com/docs/client-api.html>.
 
 =head1 SYNOPSIS
 
@@ -21,10 +22,26 @@ L<Mojo::Cloudflare> is an async client for the L<CloudFlare API|http://www.cloud
              zone => 'example.com',
            );
 
+  # add a record
+  $cf->record({
+    content => 'mojolicio.us',
+    name => 'direct.example.pm',
+    type => 'CNAME',
+  })->save;
+
+  # retrieve and update records
   for my $record ($cf->records->all) {
     warn $record->name;
-    $record->ttl(1)->save;
+    $record->ttl(1)->save; # update a record
   }
+
+  # update a record
+  $cf->record({
+    content => 'mojolicio.us',
+    id => 'some_id_fom_cloudflare', # <-- cause update instead of insert
+    name => 'direct.example.pm',
+    type => 'CNAME',
+  })->save;
 
 =cut
 
@@ -139,7 +156,7 @@ sub edit_record {
 
 =head2 record
 
-  $record_obj = $self->record(%record_construction_args);
+  $record_obj = $self->record(\%record_construction_args);
 
 Returns a L<Mojo::Cloudflare::Record> object.
 
@@ -147,7 +164,9 @@ Returns a L<Mojo::Cloudflare::Record> object.
 
 sub record {
   my $self = shift;
-  my $obj = Mojo::Cloudflare::Record->new(@_);
+  my $args = @_ ? @_ > 1 ? {@_} : $_[0] : {};
+  my $obj = Mojo::Cloudflare::Record->new({});
+  $obj->$_($args->{$_}) for grep { $obj->can($_) } keys %$args;
   Scalar::Util::weaken($obj->_cf($self)->{_cf});
   $obj;
 }
@@ -260,7 +279,7 @@ sub _post {
 =head1 COPYRIGHT AND LICENSE
 
 Copyright (C) 2014, Jan Henning Thorsen
-k
+
 This program is free software, you can redistribute it and/or modify it under
 the terms of the Artistic License version 2.0.
 

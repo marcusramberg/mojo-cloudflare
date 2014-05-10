@@ -45,13 +45,12 @@ app {
   $self->cache_ip($ip) unless $self->dry_run;
   $records = $cf->records;
 
-  for my $record (@{ $records->get('/objs') }) {
-    $record->{id} = delete $record->{rec_id};
-    next unless $record->{type} eq 'A';
-    next if $re and $record->{name} !~ /$re/;
-    printf "%40s %-15s => $ip\n", $record->{name}, $record->{content};
-    next unless $record->{content} eq $ip;
-    $cf->edit_record($record) unless $self->dry_run;
+  for my $record ($records->all) {
+    next if $record->type ne 'A';
+    next if $re and $record->name !~ m!$re!;
+    printf "%40s %-15s => %s\n", $record->name, $record->content, $ip;
+    next if $record->content eq $ip;
+    $record->content($ip)->save unless $self->dry_run;
   }
 
   return 0;
