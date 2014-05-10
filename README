@@ -1,11 +1,11 @@
 NAME
-    Mojo::Cloudflare - Talk with the cloudflare API using Mojo::UserAgent
+    Mojo::Cloudflare - Talk with the Cloudflare API using Mojo::UserAgent
 
 VERSION
-    0.02
+    0.03
 
 DESCRIPTION
-    Mojo::Cloudflare is an async client for the CloudFlare API
+    Mojo::Cloudflare is an (async) client for the CloudFlare API
     <http://www.cloudflare.com/docs/client-api.html>.
 
 SYNOPSIS
@@ -16,18 +16,26 @@ SYNOPSIS
                  zone => 'example.com',
                );
 
-      for my $record (@{ $cf->records("all")->get("/objs") }) {
-        warn $record->{zone_name};
-    
-        $cf->edit_record({
-          id => $record->{rec_id},
-          type => 'CNAME',
-          name => 'home',
-          content => 'example.com',
-          ttl => 1,
-          service_mode => 0,
-        });
+      # add a record
+      $cf->record({
+        content => 'mojolicio.us',
+        name => 'direct.example.pm',
+        type => 'CNAME',
+      })->save;
+
+      # retrieve and update records
+      for my $record ($cf->records->all) {
+        warn $record->name;
+        $record->ttl(1)->save; # update a record
       }
+
+      # update a record
+      $cf->record({
+        content => 'mojolicio.us',
+        id => 'some_id_fom_cloudflare', # <-- cause update instead of insert
+        name => 'direct.example.pm',
+        type => 'CNAME',
+      })->save;
 
 ATTRIBUTES
   api_url
@@ -54,116 +62,27 @@ ATTRIBUTES
 
 METHODS
   add_record
-      $json = $self->add_record(\%args);
-      $self = $self->add_record(\%args, sub {
-              my($self, $err, $json) = @_;
-              # ...
-            });
-
-    Used to add a new DNS record. $err is true and contains a string on
-    error, while $json is a Mojo::JSON::Pointer object with the "rec" part
-    from the JSON on success:
-
-      {
-        "request" => { ... },
-        "response" => {
-          "rec" => { # <== this structure
-            "obj" => {
-              ...
-            },
-          },
-        },
-        "result": ...,
-        "msg": ...
-      };
-
-    Example usage:
-
-      $rec_tag = $json->get("/obj/rec_tag");
-
-    Valid %args:
-
-    *   type => {A,CNAME,MX,TXT,SPF,AAAA,NS,SRV,LOC},
-
-        Name of the DNS record.
-
-    *   name => $str
-
-        Name of the DNS record
-
-    *   content => $str
-
-        The content of the DNS record, will depend on the the type of record
-        being added.
-
-    *   ttl => $int
-
-        TTL of record in seconds. 1 (default) = Automatic, otherwise, value
-        must in between 120 and 86400 seconds.
-
-    *   priority => $int
-
-        MX record priority.
+    Will be deprecated. Use "save" in Mojo::Cloudflare::Record instead.
 
   delete_record
-      $json = $self->delete_record($id);
-      $self = $self->delete_record($id, sub {
-              my($self, $err, $json) = @_;
-              # ...
-            });
-
-    Used to delete a DNS record. $err is true and contains a string on
-    error, while $json is a Mojo::JSON::Pointer object on success.
+    Will be deprecated. Use "delete" in Mojo::Cloudflare::Record instead.
 
   edit_record
-      $json = $self->edit_record(\%args);
-      $self = $self->edit_record(\%args, sub {
-              my($self, $err, $json) = @_;
-              # ...
-            });
+    Will be deprecated. Use "save" in Mojo::Cloudflare::Record instead.
 
-    Used to edit a DNS record. $err is true and contains a string on error,
-    while $json is a Mojo::JSON::Pointer object on success.
+  record
+      $record_obj = $self->record(\%record_construction_args);
 
-    See "add_record" for more details on the response.
-
-    Valid %args:
-
-    *   id => $str
-
-        DNS Record ID. Required argument.
-
-    *   type => {A,CNAME,MX,TXT,SPF,AAAA,NS,SRV,LOC},
-
-        Name of the DNS record.
-
-    *   name => $str
-
-        Name of the DNS record
-
-    *   content => $str
-
-        The content of the DNS record, will depend on the the type of record
-        being added.
-
-    *   ttl => $int
-
-        TTL of record in seconds. 1 = Automatic, otherwise, value must in
-        between 120 and 86400 seconds.
-
-    *   service_mode => $bool
-
-        Status of CloudFlare Proxy, 1 = orange cloud, 0 = grey cloud.
-
-    *   priority => $int
-
-        MX record priority.
+    Returns a Mojo::Cloudflare::Record object.
 
   records
-      $json = $self->records($offset);
+      $records_obj = $self->records($offset);
       $self = $self->records($offset, sub {
-                my($self, $err, $json) = @_;
+                my($self, $err, $records_obj) = @_;
               });
+
+    Used to retrieve Mojo::Cloudflare::Record objects. The return value will
+    be a Mojo::Cloudflare::RecordSet object.
 
     $offset is optional and defaults to "all", which will retrieve all the
     DNS records instead of the limit of 180 set by CloudFlare.
