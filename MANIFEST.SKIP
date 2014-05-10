@@ -4,6 +4,7 @@
 \.swp
 ~$
 ^blib/
+^local
 ^Makefile$
 ^MANIFEST.*
 ^MYMETA.*
