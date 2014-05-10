@@ -36,7 +36,7 @@ app {
   my $ip = $ua->get("http://canhazip.com")->res->body =~ /(\S+)/ ? $1 : '';
   my $records;
 
-  if($ip eq $self->old_ip) {
+  if($ip eq $self->old_ip and !$self->dry_run) {
     print "Skip update since $ip has not changed.\n";
     return 0;
   }
@@ -44,11 +44,12 @@ app {
   $ip =~ /\d\./ or die "Could not get IP from canhazip.com.\n";
   $self->cache_ip($ip) unless $self->dry_run;
   $records = $cf->records;
+  printf "%-40s %-15s\n", 'localhost', $ip;
 
   for my $record ($records->all) {
     next if $record->type ne 'A';
     next if $re and $record->name !~ m!$re!;
-    printf "%40s %-15s => %s\n", $record->name, $record->content, $ip;
+    printf "%-40s %-15s\n", $record->name, $record->content;
     next if $record->content eq $ip;
     $record->content($ip)->save unless $self->dry_run;
   }
