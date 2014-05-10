@@ -40,6 +40,28 @@ sub all {
   };
 }
 
+=head2 single
+
+  $record = $self->single(sub { $_->name =~ /^foo/ });
+
+Used find a single record from L</all>. C<undef> is returned
+if no records match.
+
+NOTE! This will only return the first record found.
+
+=cut
+
+sub single {
+  my($self, $filter) = @_;
+
+  for($self->all) {
+    next unless $self->$filter;
+    return $_;
+  }
+
+  return undef;
+}
+
 sub _new_from_tx {
   my($class, $tx) = @_;
   my $err = $tx->error;

@@ -17,12 +17,9 @@ my($records, $record);
   ok $records->contains('/has_more'), 'records: /has_more';
   ok $records->get('/objs'), 'records: /objs';
 
-  for($records->all) {
-    next unless $_->name =~ /^direct\./;
-    $record = $_;
-    last;
-  }
+  $record = $records->single(sub { $_->name =~ /^direct\./ });
 
+  ok $record, 'found direct.x record';
   is $record->_cf, $cf, 'record _cf points back';
   isa_ok($record, 'Mojo::Cloudflare::Record');
   ok $record, 'Found direct.foo.com record';
