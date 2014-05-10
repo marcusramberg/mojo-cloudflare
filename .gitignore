@@ -11,3 +11,4 @@
 *.swp
 ~$
 /Mojo-Cloudflare*tar.gz
+/local
