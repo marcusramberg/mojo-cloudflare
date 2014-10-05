@@ -85,7 +85,9 @@ for my $attr (qw( content name priority type )) {
   has $attr => sub { $_[0]->get("/$attr") || $_[0]->get("/obj/$attr") || "" };
 }
 
-sub id { $_[0]->{id} ||= $_[0]->get("/obj/rec_id") || "" };
+sub id {
+  $_[0]->{id} ||= $_[0]->get("/rec_id") || $_[0]->get("/obj/rec_id") || "";
+}
 
 has service_mode => '';
 has ttl => sub { shift->data->{ttl} || 1 };
@@ -105,12 +107,9 @@ Used to save delete record from Cloudflare.
 =cut
 
 sub delete {
-  my($self, $cb) = @_;
+  my ($self, $cb) = @_;
 
-  $self->_cf->_post(
-    { a => 'rec_delete', id => $self->id, _class => $self },
-    $cb,
-  );
+  $self->_cf->_post({a => 'rec_delete', id => $self->id, _class => $self}, $cb);
 }
 
 =head2 save
@@ -128,14 +127,14 @@ sub save {
 }
 
 sub _new_from_tx {
-  my($class, $tx) = @_;
+  my ($class, $tx) = @_;
   my $err = $tx->error;
   my $json = $tx->res->json || {};
 
   $json->{result} //= '';
   $err ||= $json->{msg} || $json->{result} || 'Unknown error.' if $json->{result} ne 'success';
 
-  if(ref $class) { # object instead of class
+  if (ref $class) {    # object instead of class
     my $obj = $json->{response}{rec}{obj} || {};
     for my $k (keys %$obj) {
       $class->data->{obj}{$k} = $obj->{$k};
@@ -149,24 +148,24 @@ sub _new_from_tx {
 }
 
 sub _rec_new {
-  my($self, $cb) = @_;
+  my ($self, $cb) = @_;
   my %args = map { ($_, $self->$_) } qw( content name ttl type );
 
   $args{_class} = $self;
-  $args{a} = 'rec_new';
-  $args{prio} = $self->priority if length $self->priority;
+  $args{a}      = 'rec_new';
+  $args{prio}   = $self->priority if length $self->priority;
 
   return $self->_cf->_post(\%args, $cb);
 }
 
 sub _rec_edit {
-  my($self, $cb) = @_;
+  my ($self, $cb) = @_;
   my %args = map { ($_, $self->$_) } qw( content name ttl type );
 
-  $args{_class} = $self;
-  $args{a} = 'rec_edit';
-  $args{id} = $self->id or die "Cannot update record ($self->{name}) without 'id'";
-  $args{prio} = $self->priority if length $self->priority;
+  $args{_class}       = $self;
+  $args{a}            = 'rec_edit';
+  $args{id}           = $self->id or die "Cannot update record ($self->{name}) without 'id'";
+  $args{prio}         = $self->priority if length $self->priority;
   $args{service_mode} = $self->service_mode ? 1 : 0 if length $self->service_mode;
 
   return $self->_cf->_post(\%args, $cb);

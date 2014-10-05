@@ -84,10 +84,10 @@ The zone (domain) to act on.
 =cut
 
 has api_url => 'https://www.cloudflare.com/api_json.html';
-has email => '';
-has key => '';
-has zone => '';
-has _ua => sub { Mojo::UserAgent->new };
+has email   => '';
+has key     => '';
+has zone    => '';
+has _ua     => sub { Mojo::UserAgent->new };
 
 =head1 METHODS
 
@@ -98,18 +98,14 @@ Will be deprecated. Use L<Mojo::Cloudflare::Record/save> instead.
 =cut
 
 sub add_record {
-  my($self, $args, $cb) = @_;
+  my ($self, $args, $cb) = @_;
   my %args;
 
-  %args = map {
-    ($_, $args->{$_});
-  } grep {
-    defined $args->{$_};
-  } qw( type name content ttl );
+  %args = map { ($_, $args->{$_}); } grep { defined $args->{$_}; } qw( type name content ttl );
 
   $args{_class} = 'Mojo::Cloudflare::Record';
-  $args{a} = 'rec_new';
-  $args{prio} = $args->{priority} if defined $args->{priority};
+  $args{a}      = 'rec_new';
+  $args{prio}   = $args->{priority} if defined $args->{priority};
   $args{ttl} ||= 1;
 
   return $self->_post(\%args, $cb);
@@ -122,12 +118,9 @@ Will be deprecated. Use L<Mojo::Cloudflare::Record/delete> instead.
 =cut
 
 sub delete_record {
-  my($self, $id, $cb) = @_;
+  my ($self, $id, $cb) = @_;
 
-  $self->_post(
-    { a => 'rec_delete', id => $id, _class => 'Mojo::Cloudflare::Record' },
-    $cb,
-  );
+  $self->_post({a => 'rec_delete', id => $id, _class => 'Mojo::Cloudflare::Record'}, $cb,);
 }
 
 =head2 edit_record
@@ -137,18 +130,14 @@ Will be deprecated. Use L<Mojo::Cloudflare::Record/save> instead.
 =cut
 
 sub edit_record {
-  my($self, $args, $cb) = @_;
+  my ($self, $args, $cb) = @_;
   my %args;
 
-  %args = map {
-    ($_, $args->{$_});
-  } grep {
-    defined $args->{$_};
-  } qw( id type name content ttl );
+  %args = map { ($_, $args->{$_}); } grep { defined $args->{$_}; } qw( id type name content ttl );
 
-  $args{_class} = 'Mojo::Cloudflare::Record';
-  $args{a} = 'rec_edit';
-  $args{prio} = $args->{priority} if defined $args->{priority};
+  $args{_class}       = 'Mojo::Cloudflare::Record';
+  $args{a}            = 'rec_edit';
+  $args{prio}         = $args->{priority} if defined $args->{priority};
   $args{service_mode} = $args->{service_mode} ? 1 : 0 if defined $args->{service_mode};
 
   return $self->_post(\%args, $cb);
@@ -165,7 +154,7 @@ Returns a L<Mojo::Cloudflare::Record> object.
 sub record {
   my $self = shift;
   my $args = @_ ? @_ > 1 ? {@_} : $_[0] : {};
-  my $obj = Mojo::Cloudflare::Record->new({});
+  my $obj  = Mojo::Cloudflare::Record->new({});
   $obj->$_($args->{$_}) for grep { $obj->can($_) } keys %$args;
   Scalar::Util::weaken($obj->_cf($self)->{_cf});
   $obj;
@@ -187,33 +176,33 @@ records instead of the limit of 180 set by CloudFlare.
 =cut
 
 sub records {
-  my($self, $offset, $cb) = @_;
+  my ($self, $offset, $cb) = @_;
 
-  if(ref $offset eq 'CODE') {
-    $cb = $offset;
+  if (ref $offset eq 'CODE') {
+    $cb     = $offset;
     $offset = 'all';
   }
 
-  if(!defined $offset or $offset eq 'all') {
-    my $record_set = Mojo::Cloudflare::RecordSet->new({ count => 0, has_more => undef, objs => [] });
+  if (!defined $offset or $offset eq 'all') {
+    my $record_set = Mojo::Cloudflare::RecordSet->new({count => 0, has_more => undef, objs => []});
     Scalar::Util::weaken($record_set->_cf($self)->{_cf});
     return $cb ? $self->_all_records_nb($record_set, $cb) : $self->_all_records($record_set);
   }
   else {
-    return $self->_post({ a => 'rec_load_all', o => $offset, _class => 'Mojo::Cloudflare::RecordSet' }, $cb);
+    return $self->_post({a => 'rec_load_all', o => $offset, _class => 'Mojo::Cloudflare::RecordSet'}, $cb);
   }
 }
 
 sub _all_records {
-  my($self, $record_set) = @_;
+  my ($self, $record_set) = @_;
   my $has_more = 1;
-  my $offset = 0;
+  my $offset   = 0;
 
-  while($has_more) {
-    my $json = $self->_post({ a => 'rec_load_all', o => $offset, _class => 'Mojo::Cloudflare::RecordSet' });
+  while ($has_more) {
+    my $json = $self->_post({a => 'rec_load_all', o => $offset, _class => 'Mojo::Cloudflare::RecordSet'});
 
     $record_set->data->{count} += $json->get('/count');
-    push @{ $record_set->data->{objs} }, @{ $json->get('/objs') || [] };
+    push @{$record_set->data->{objs}}, @{$json->get('/objs') || []};
     $has_more = $json->get('/has_more');
     $offset += $has_more ? $json->get('/count') : 0;
   }
@@ -222,39 +211,39 @@ sub _all_records {
 }
 
 sub _all_records_nb {
-  my($self, $record_set, $cb) = @_;
+  my ($self, $record_set, $cb) = @_;
   my $offset = 0;
   my $retriever;
 
   $retriever = sub {
-    my($self, $err, $json) = @_;
+    my ($self, $err, $json) = @_;
     my $offset;
 
     return $self->$cb($err, $record_set) if $err;
 
     $offset += $json->get('/count');
     $record_set->data->{count} = $offset;
-    push @{ $record_set->data->{objs} }, @{ $json->get('/objs') || [] };
+    push @{$record_set->data->{objs}}, @{$json->get('/objs') || []};
 
     return $self->$cb('', $record_set) unless $json->get('/has_more');
-    return $self->_post({ a => 'rec_load_all', o => $offset, _class => 'Mojo::Cloudflare::RecordSet' }, $retriever);
+    return $self->_post({a => 'rec_load_all', o => $offset, _class => 'Mojo::Cloudflare::RecordSet'}, $retriever);
   };
 
-  $self->_post({ a => 'rec_load_all', _class => 'Mojo::Cloudflare::RecordSet' }, $retriever);
+  $self->_post({a => 'rec_load_all', _class => 'Mojo::Cloudflare::RecordSet'}, $retriever);
 }
 
 sub _post {
-  my($self, $data, $cb) = @_;
+  my ($self, $data, $cb) = @_;
   my $class = delete $data->{_class};
 
   $data->{a} or die "Internal error: Unknown action";
   $data->{email} ||= $self->email;
-  $data->{tkn} ||= $self->key;
+  $data->{tkn}   ||= $self->key;
   $data->{z} = $self->zone if $data->{a} =~ /^rec/;
 
-  unless($cb) {
+  unless ($cb) {
     my $tx = $self->_ua->post($self->api_url, form => $data);
-    my($err, $obj) = $class->_new_from_tx($tx);
+    my ($err, $obj) = $class->_new_from_tx($tx);
 
     die $err if $err;
     Scalar::Util::weaken($obj->_cf($self)->{_cf});
@@ -266,7 +255,7 @@ sub _post {
     $self->api_url,
     form => $data,
     sub {
-      my($err, $obj) = $class->_new_from_tx($_[1]);
+      my ($err, $obj) = $class->_new_from_tx($_[1]);
 
       Scalar::Util::weaken($obj->_cf($self)->{_cf});
       $self->$cb($err, $obj);

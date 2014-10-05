@@ -1,5 +1,9 @@
 Revision history for Mojo-Cloudflare
 
+0.04  
+       * Fix id method so edit record works
+       * Tidy.
+
 0.03     Sat May 10 16:04:18 2014
        * Add Mojo::Cloudflare::Record
        * Add Mojo::Cloudflare::RecordSet

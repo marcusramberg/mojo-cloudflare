@@ -35,7 +35,7 @@ sub all {
         my $obj = Mojo::Cloudflare::Record->new($_);
         Scalar::Util::weaken($obj->_cf($self->_cf)->{_cf});
         $obj;
-      } @{ $self->get('/objs') || [] }
+      } @{$self->get('/objs') || []}
     ]
   };
 }
@@ -52,9 +52,9 @@ NOTE! This will only return the first record found.
 =cut
 
 sub single {
-  my($self, $filter) = @_;
+  my ($self, $filter) = @_;
 
-  for($self->all) {
+  for ($self->all) {
     next unless $self->$filter;
     return $_;
   }
@@ -63,7 +63,7 @@ sub single {
 }
 
 sub _new_from_tx {
-  my($class, $tx) = @_;
+  my ($class, $tx) = @_;
   my $err = $tx->error;
   my $json = $tx->res->json || {};
 
